@@ -6,17 +6,17 @@ app = Microdot()
 
 @app.route('/pump')
 def pumpValue(request):
-    return {'pump': relay.getPump()}
+    return {'pump': relay.getPump()}, 200,  {'Access-Control-Allow-Origin': '*'}
 
 
 @app.route('/pump/<setting>')
 def pump(request, setting):
     if setting == 'on':
         relay.pumpOn()
-        return {'pump': relay.getPump()}
+        return {'pump': relay.getPump()}, 200, {'Access-Control-Allow-Origin': '*'}
     if setting == 'off':
         relay.pumpOff()
-        return {'pump': relay.getPump()}
+        return {'pump': relay.getPump()}, 200,  {'Access-Control-Allow-Origin': '*'}
     return "Not Found", 404
 
 
