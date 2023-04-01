@@ -1,0 +1,7 @@
+{
+    "pumpTimes": "1530,630,1830",
+    "pumpOnSeconds": 180,
+    "camOnMinutes": 30,
+    "pumpMSBlock": 9,
+    "pumpMSTriggerOn": 2
+}
