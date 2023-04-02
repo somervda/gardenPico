@@ -15,6 +15,10 @@ batADC = ADC(28)
 wetVolts = 1.1
 dryVolts = 2.6
 
+waterLowPin = Pin(18, Pin.IN, Pin.PULL_UP)
+waterMedPin = Pin(19, Pin.IN, Pin.PULL_UP)
+waterHighPin = Pin(20, Pin.IN, Pin.PULL_UP)
+
 
 def file_or_dir_exists(filename):
     try:
@@ -52,17 +56,44 @@ def getHumidity():
     return bme.humidity
 
 
+def getWaterLevel():
+    # 4 water levels reported
+    # 1- low (Don't pump), 2 - medium, 3 - medium/full, 4 - full
+    if waterLowPin.value() == 0:
+        return 1
+    if waterMedPin.value() == 0:
+        return 2
+    if waterHighPin.value() == 0:
+        return 3
+    return 4
+
+
 def makeLogLine():
     global pumpSeconds
     global camMinutes
     logLine = str(time.time()) + ","
     logLine += str(getWetness(sm1ADC)) + "," + \
         str(getWetness(sm2ADC)) + "," + str(getBattery(batADC)) + ","
-    logLine += str(getTemperature()) + "," + str(getHumidity()) + ","
-    logLine += str(pumpSeconds) + "," + str(camMinutes) + "\n"
+    logLine += getTemperature().replace("C", "") + "," + \
+        getHumidity().replace("%", "") + ","
+    logLine += str(pumpSeconds) + "," + str(camMinutes)
+    logLine += "," + str(getWaterLevel()) + "\n"
     pumpSeconds = 0
     camMinutes = 0
     return logLine
+
+
+def getSensors():
+    # Get a dictionary of sensor data
+    sensors = {}
+    sensors["sm1"] = getWetness(sm1ADC)
+    sensors["sm2"] = getWetness(sm2ADC)
+    sensors["battery"] = getBattery(batADC)
+    sensors["temperature"] = float((getTemperature()).replace("C", ""))
+    sensors["humidity"] = float((getHumidity()).replace("%", ""))
+    sensors["waterLevel"] = getWaterLevel()
+    print(sensors)
+    return sensors
 
 
 def writeLog():

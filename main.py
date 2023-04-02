@@ -1,8 +1,11 @@
 import relay
 from microdot_asyncio import Microdot,  send_file, Response
+from history import History
 import uasyncio
 import sensor
 import time
+import gc
+from settings import GardenSettings
 
 import machine
 import time
@@ -11,8 +14,8 @@ lastTime = time.time()
 
 
 led.off()
-
 app = Microdot()
+gardenSettings = GardenSettings()
 
 
 # async def blink():
@@ -64,6 +67,41 @@ def pump(request, setting):
         relay.pumpOff()
         return {'pump': relay.getPump()}, 200,  {'Access-Control-Allow-Origin': '*'}
     return "Not Found", 404
+
+
+@app.route('/sensors')
+def sensors(request):
+    return {'sensors': sensor.getSensors()}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route("/history/<start>/<end>")
+@app.route("/history/<start>")
+@app.route("/history")
+def gardenHistory(request, start=0, end=0):
+    # Check the start and end values are integers
+    try:
+        _start = int(start)
+        _end = int(end)
+    except:
+        return "Start/End values not integer(s).", 400
+    if start == 0:
+        start = (time.time() - (24 * 60 * 60))
+    if end == 0:
+        end = time.time()
+    history = History()
+    # log = history.getLogData(int(start), int(end))
+    print("mem_free():", gc.mem_free())
+    return history.getLogData(int(start), int(end))
+
+
+@app.route('/setting/pumpOnSeconds')
+def getPumpOnSeconds(request):
+    return gardenSettings.getPumpOnSeconds()
+
+
+@app.route('/setting/pumpOnSeconds/<value>')
+def setPumpOnSeconds(request, value):
+    return gardenSettings.getPumpOnSeconds()
 
 
 @app.route('/')

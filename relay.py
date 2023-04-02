@@ -1,5 +1,5 @@
 import machine
-from settings import gardenSettings
+from settings import GardenSettings
 import time
 import sensor
 
@@ -16,13 +16,14 @@ camOffTime = None
 
 def pumpOn():
     global pumpValue, pumpOffTime
-    # if (sensor.waterLevel > low):
-    pumpRelay.on()
-    pumpValue = "on"
-    gs = gardenSettings()
-    pumpOffTime = time.time() + gs.getPumpOnSeconds()
-    # else:
-    #     print("water level too low, pump not started")
+    # Check there is enough water to pump before starting irrigation
+    if (sensor.getWaterLevel() > 1):
+        pumpRelay.on()
+        pumpValue = "on"
+        gs = GardenSettings()
+        pumpOffTime = time.time() + gs.getPumpOnSeconds()
+    else:
+        print("Water level too low, pump not started", sensor.waterLevel)
 
 
 def pumpOff():
@@ -40,7 +41,7 @@ def camOn():
     global camValue, camOffTime
     camRelay.on()
     camValue = "on"
-    gs = gardenSettings()
+    gs = GardenSettings()
     camOffTime = time.time() + (gs.getCamOnMinutes() * 60)
 
 
@@ -57,9 +58,9 @@ def getCam():
 
 def checkToTurnOff():
     global pumpOffTime, camOffTime
-    # if (waterlevel == low):
-    #     print("water level is low, turned off pump")
-    #     pumpOff()
+    if (sensor.getWaterLevel() == 1):
+        print("water level is low, turned off pump")
+        pumpOff()
     if pumpOffTime is None:
         if getPump() == "on":
             pumpOff()
@@ -81,7 +82,7 @@ def checkToTurnOn():
     currentHour = time.localtime()[3]
     currentMinute = time.localtime()[4]
     militaryTime = (currentHour * 100) + currentMinute
-    gs = gardenSettings()
+    gs = GardenSettings()
     pumpTimes = (gs.getPumpTimes()).split(",")
     for pumpTime in pumpTimes:
         if int(pumpTime) == militaryTime:
@@ -90,8 +91,8 @@ def checkToTurnOn():
 
 
 def checkToTurnOnForMoisture():
-    gs = gardenSettings()
-    # moisture sensors say pump should be turned on
+    gs = GardenSettings()
+    # moisture sensors say pump should be turned on, only check once an hour
     if sensor.getWetness(sensor.sm1ADC) < gs.getPumpMSTriggerOn() or sensor.getWetness(sensor.sm2ADC) < gs.getPumpMSTriggerOn():
         print("Pump on , low moisture")
         pumpOn()

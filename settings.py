@@ -2,7 +2,7 @@
 import json
 
 
-class gardenSettings:
+class GardenSettings:
     # Persist settings in a gardenSettings.json file
     def __init__(self):
         self._loadSettings()
@@ -72,8 +72,8 @@ class gardenSettings:
         self._saveSettings()
         return msLevel
 
-    # comma delimited list of times to turn on the pump
-    #  i.e. 600,1400,2200
+    # comma delimited list of times (24 hour times) to turn on the pump
+    #  i.e. 630,1400,2200
     def getPumpTimes(self):
         self._loadSettings()
         if "pumpTimes" in self._settings:
