@@ -1,7 +1,8 @@
-import os
+import uos
 from machine import Pin, ADC, I2C
 import time
 import bme280
+import gc
 
 pumpSeconds = 0
 camMinutes = 0
@@ -22,7 +23,7 @@ waterHighPin = Pin(20, Pin.IN, Pin.PULL_UP)
 
 def file_or_dir_exists(filename):
     try:
-        os.stat(filename)
+        uos.stat(filename)
         return True
     except OSError:
         return False
@@ -92,6 +93,10 @@ def getSensors():
     sensors["temperature"] = float((getTemperature()).replace("C", ""))
     sensors["humidity"] = float((getHumidity()).replace("%", ""))
     sensors["waterLevel"] = getWaterLevel()
+    # Also return memory details
+    sensors["mem_free"] = gc.mem_free()
+    sensors["file_bytes_free"] = (uos.statvfs("/")[0] * uos.statvfs("/")[3])
+    sensors["file_bytes_total"] = (uos.statvfs("/")[0] * uos.statvfs("/")[2])
     print(sensors)
     return sensors
 
@@ -113,9 +118,3 @@ def writeLog():
     else:
         with open(logName, "w") as logFile:
             logFile.write(logLine)
-
-
-def read():
-    for x in range(30):
-        print(x, getWetness(sm1ADC), getWetness(sm2ADC), getBattery(batADC))
-        time.sleep(1)
