@@ -52,9 +52,11 @@ async def clockWatcher():
         # sleep for 60 seconds
         await uasyncio.sleep(60)
 
+# Turn the pump on or off
+
 
 @app.route('/pump')
-def pumpValue(request):
+def getPump(request):
     return {'pump': relay.getPump()}, 200,  {'Access-Control-Allow-Origin': '*'}
 
 
@@ -68,10 +70,32 @@ def pump(request, setting):
         return {'pump': relay.getPump()}, 200,  {'Access-Control-Allow-Origin': '*'}
     return "Not Found", 404
 
+#  turn the webcam on or off
+
+
+@app.route('/cam')
+def getCam(request):
+    return {'cam': relay.getCam()}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route('/cam/<setting>')
+def cam(request, setting):
+    if setting == 'on':
+        relay.camOn()
+        return {'cam': relay.getCam()}, 200, {'Access-Control-Allow-Origin': '*'}
+    if setting == 'off':
+        relay.camOff()
+        return {'cam': relay.getCam()}, 200,  {'Access-Control-Allow-Origin': '*'}
+    return "Not Found", 404
+
+#  Get current sensor readings
+
 
 @app.route('/sensors')
 def sensors(request):
     return {'sensors': sensor.getSensors()}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+# Retrieve log data
 
 
 @app.route("/history/<start>/<end>")
@@ -93,16 +117,60 @@ def gardenHistory(request, start=0, end=0):
     print("mem_free():", gc.mem_free())
     return history.getLogData(int(start), int(end))
 
+# Setters and getters for settings
+
 
 @app.route('/setting/pumpOnSeconds')
 def getPumpOnSeconds(request):
-    return gardenSettings.getPumpOnSeconds()
+    return {"pumpOnSeconds": gardenSettings.getPumpOnSeconds()}, 200,  {'Access-Control-Allow-Origin': '*'}
 
 
-@app.route('/setting/pumpOnSeconds/<value>')
+@app.route('/setting/pumpOnSeconds/<int:value>')
 def setPumpOnSeconds(request, value):
-    return gardenSettings.getPumpOnSeconds()
+    return {"pumpOnSeconds": gardenSettings.setPumpOnSeconds(value)}, 200,  {'Access-Control-Allow-Origin': '*'}
 
+
+@app.route('/setting/camOnMinutes')
+def getCamOnMinutes(request):
+    return {"camOnMinutes": gardenSettings.getCamOnMinutes()}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route('/setting/camOnMinutes/<int:value>')
+def setCamOnMinutes(request, value):
+    return {"camOnMinutes": gardenSettings.setCamOnMinutes(value)}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route('/setting/pumpMSTriggerOn')
+def getPumpOnSeconds(request):
+    return {"pumpMSTriggerOn": gardenSettings.getPumpMSTriggerOn()}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route('/setting/pumpMSTriggerOn/<int:value>')
+def setPumpMSTriggerOn(request, value):
+    return {"pumpMSTriggerOn": gardenSettings.setPumpMSTriggerOn(value)}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route('/setting/pumpMSTriggerBlock')
+def getPumpMSTriggerBlock(request):
+    return {"pumpMSTriggerBlock": gardenSettings.getPumpMSTriggerBlock()}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route('/setting/pumpMSTriggerBlock/<int:value>')
+def setPumpMSTriggerBlock(request, value):
+    return {"pumpMSTriggerBlock": gardenSettings.setPumpMSTriggerBlock(value)}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route('/setting/pumpTimes')
+def getPumpTimes(request):
+    return {"pumpTimes": gardenSettings.getPumpTimes()}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+@app.route('/setting/pumpTimes/<value>')
+def setPumpTimes(request, value):
+    return {"pumpTimes": gardenSettings.setPumpTimes(value)}, 200,  {'Access-Control-Allow-Origin': '*'}
+
+
+#  All other request return static files from garden_ui folder
 
 @app.route('/')
 def index(request):

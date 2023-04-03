@@ -27,6 +27,7 @@ class GardenSettings:
             return None
 
     def setPumpOnSeconds(self, seconds):
+        self._loadSettings()
         self._settings["pumpOnSeconds"] = seconds
         self._saveSettings()
         return seconds
@@ -40,6 +41,7 @@ class GardenSettings:
             return None
 
     def setCamOnMinutes(self, minutes):
+        self._loadSettings()
         self._settings["camOnMinutes"] = minutes
         self._saveSettings()
         return minutes
@@ -54,6 +56,7 @@ class GardenSettings:
             return None
 
     def setPumpMSTriggerOn(self, msLevel):
+        self._loadSettings()
         self._settings["pumpMSTriggerOn"] = msLevel
         self._saveSettings()
         return msLevel
@@ -68,6 +71,7 @@ class GardenSettings:
             return None
 
     def setPumpMSBlock(self, msLevel):
+        self._loadSettings()
         self._settings["pumpMSBlock"] = msLevel
         self._saveSettings()
         return msLevel
@@ -82,6 +86,7 @@ class GardenSettings:
             return None
 
     def setPumpTimes(self, times):
+        self._loadSettings()
         self._settings["pumpTimes"] = times
         self._saveSettings()
         return times
