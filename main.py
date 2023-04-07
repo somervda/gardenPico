@@ -20,10 +20,8 @@ async def clockWatcher():
     while True:
         # Update pump and cam time tracking
         if relay.getPump() == "on":
-            print("Pump ON", sensor.pumpSeconds)
             sensor.pumpSeconds += 60
         if relay.getCam() == "on":
-            print("Cam ON", sensor.camMinutes)
             sensor.camMinutes += 1
         # Check if the pump or cam should be turned off
         relay.checkToTurnOff()
@@ -41,8 +39,6 @@ async def clockWatcher():
         await uasyncio.sleep(60)
 
 # Turn the pump on or off
-
-
 @app.route('/pump')
 def getPump(request):
     return {'pump': relay.getPump()}, 200,  {'Access-Control-Allow-Origin': '*'}
@@ -59,8 +55,6 @@ def pump(request, setting):
     return "Not Found", 404
 
 #  turn the webcam on or off
-
-
 @app.route('/cam')
 def getCam(request):
     return {'cam': relay.getCam()}, 200,  {'Access-Control-Allow-Origin': '*'}
@@ -77,15 +71,11 @@ def cam(request, setting):
     return "Not Found", 404
 
 #  Get current sensor readings
-
-
 @app.route('/sensors')
 def sensors(request):
     return {'sensors': sensor.getSensors()}, 200,  {'Access-Control-Allow-Origin': '*'}
 
 # Retrieve log data
-
-
 @app.route("/history/<start>/<end>")
 @app.route("/history/<start>")
 @app.route("/history")
@@ -104,8 +94,6 @@ def gardenHistory(request, start=0, end=0):
     return history.getLogData(int(start), int(end))
 
 # Setters and getters for settings
-
-
 @app.route('/settings/pumpOnSeconds')
 def getPumpOnSeconds(request):
     return {"pumpOnSeconds": gardenSettings.getPumpOnSeconds()}, 200,  {'Access-Control-Allow-Origin': '*'}
@@ -157,7 +145,6 @@ def setPumpTimes(request, value):
 
 
 # Get all settings at once ( save some network time )
-
 @app.route('/settings')
 def getAllSettings(request):
     settings = {"pumpTimes": gardenSettings.getPumpTimes(),
@@ -166,8 +153,6 @@ def getAllSettings(request):
     return settings, 200,  {'Access-Control-Allow-Origin': '*'}
 
 #  All other request return static files from garden_ui folder
-
-
 @app.route('/')
 def index(request):
     return send_file('garden-ui/index.html')

@@ -30,8 +30,8 @@ class History:
 
         summarize = True if ((end-begin)/(60*60*24)
                              ) > SUMMARIZE_DAYS else False
-        if summarize:
-            print("Summarize:", ((end-begin)/(60*60*24)))
+        # if summarize:
+        #     print("Summarize:", ((end-begin)/(60*60*24)))
         startOfBeginDay = begin - \
             (time.localtime(begin)[3] * 60 * 60) - \
             (time.localtime(begin)[4] * 60) + 1
@@ -44,7 +44,7 @@ class History:
                 logDay = "0" + logDay
             logName = "/log/" + \
                 str(time.localtime(fileDate)[0]) + logMonth + logDay + ".csv"
-            print("getHistory logName:", logName, fileDate)
+            # print("getHistory logName:", logName, fileDate)
             if self.fileExists(logName):
                 with open(logName, "r") as loggingFile:
                     # filter out entries that are not in required range
@@ -76,5 +76,5 @@ class History:
                             (time.localtime(fileDate)[4] * 60) + 1
                         entries[startOfDay] = {"sm1": sm1Total/hoursTotal, "sm2": sm2Total/hoursTotal, "bat": batTotal/hoursTotal, "temp": tempTotal /
                                                hoursTotal, "humidity": humidityTotal/hoursTotal, "pump": pumpTotal, "cam": camTotal, "waterLevel": waterLevelTotal/hoursTotal}
-        print("entries:", entries)
+        # print("entries:", entries)
         return entries
