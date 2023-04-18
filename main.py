@@ -87,7 +87,7 @@ def gardenHistory(request, start=0, end=0):
     except:
         return "Start/End values not integer(s).", 400
     if start == 0:
-        start = (gardenSettings.getLocalTime() - (24 * 60 * 60))
+        start = time.time() - (24 * 60 * 60)
     if end == 0:
         end = time.time()
     history = History()

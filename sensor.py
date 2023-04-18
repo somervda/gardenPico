@@ -3,7 +3,6 @@ from machine import Pin, ADC, I2C
 import time
 import bme280
 import gc
-from settings import GardenSettings
 import relay
 
 pumpSeconds = 0
@@ -74,8 +73,7 @@ def getWaterLevel():
 def makeLogLine():
     global pumpSeconds
     global camMinutes
-    gs = GardenSettings()
-    logLine = str(gs.getLocalTime()) + ","
+    logLine = str(time.time()) + ","
     logLine += str(getWetness(sm1ADC)) + "," + \
         str(getWetness(sm2ADC)) + "," + str(getBattery(batADC)) + ","
     logLine += getTemperature().replace("C", "") + "," + \
@@ -107,15 +105,14 @@ def getSensors():
 
 
 def writeLog():
-    gs = GardenSettings()
-    logMonth = str(time.localtime(gs.getLocalTime())[1])
+    logMonth = str(time.localtime()[1])
     if len(logMonth) == 1:
         logMonth = "0" + logMonth
-    logDay = str(time.localtime(gs.getLocalTime())[2])
+    logDay = str(time.localtime()[2])
     if len(logDay) == 1:
         logDay = "0" + logDay
     logName = "/log/" + \
-        str(time.localtime(gs.getLocalTime())
+        str(time.localtime()
             [0]) + logMonth + logDay + ".csv"
     logLine = makeLogLine()
     print(logName, logLine)

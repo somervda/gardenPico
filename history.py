@@ -1,5 +1,6 @@
 import time
 import os
+# import helper
 
 
 class History:
@@ -71,7 +72,7 @@ class History:
                         startOfDay = fileDate - \
                             (time.localtime(fileDate)[3] * 60 * 60) - \
                             (time.localtime(fileDate)[4] * 60) + 1
-                        entries[startOfDay] = {"timeStamp": startOfDay, "sm1": sm1Total/hoursTotal, "sm2": sm2Total/hoursTotal, "bat": batTotal/hoursTotal, "temp": tempTotal /
+                        entries[startOfDay] = {"timeStamp":  startOfDay, "sm1": sm1Total/hoursTotal, "sm2": sm2Total/hoursTotal, "bat": batTotal/hoursTotal, "temp": tempTotal /
                                                hoursTotal, "humidity": humidityTotal/hoursTotal, "pump": pumpTotal, "cam": camTotal, "waterLevel": waterLevelTotal/hoursTotal}
                         sm1Total = 0
                         sm2Total = 0
