@@ -169,10 +169,7 @@ def static(request, path):
 
 
 if __name__ == '__main__':
-    # Track everything using my timezone time (NY)
-    gardenSettings.setLocalTimeOffset()
-    print("getNYTime", time.localtime(gardenSettings.getLocalTime()))
-    # Fire up background coroutine first
+    # Fire up background co-routine first
     uasyncio.create_task(clockWatcher())
     try:
         # Fire up the microDot server (also runs as a background coroutine)
