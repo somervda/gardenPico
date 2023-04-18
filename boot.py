@@ -5,6 +5,7 @@ import ntptime
 import time
 import machine
 
+
 ssid = 'guest24'
 password = 'backyard'
 
@@ -12,7 +13,7 @@ wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 if not wlan.isconnected() and wlan.status() >= 0:
     wlan.ifconfig(('192.168.1.40', '255.255.255.0',
-                   '192.168.1.1', '192.168.1.1'))
+                   '192.168.1.1', '8.8.8.8'))
     wlan.connect(ssid, password)
     print("Connecting:")
     while not wlan.isconnected() and wlan.status() >= 0:

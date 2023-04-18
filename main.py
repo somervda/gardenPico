@@ -87,11 +87,11 @@ def gardenHistory(request, start=0, end=0):
     except:
         return "Start/End values not integer(s).", 400
     if start == 0:
-        start = (time.time() - (24 * 60 * 60))
+        start = (gardenSettings.getLocalTime() - (24 * 60 * 60))
     if end == 0:
         end = time.time()
     history = History()
-    return history.getLogData(int(start), int(end))
+    return history.getLogData(int(start), int(end)), 200,  {'Access-Control-Allow-Origin': '*'}
 
 # Setters and getters for settings
 @app.route('/settings/pumpOnSeconds')
@@ -169,6 +169,9 @@ def static(request, path):
 
 
 if __name__ == '__main__':
+    # Track everything using my timezone time (NY)
+    gardenSettings.setLocalTimeOffset()
+    print("getNYTime", time.localtime(gardenSettings.getLocalTime()))
     # Fire up background coroutine first
     uasyncio.create_task(clockWatcher())
     try:

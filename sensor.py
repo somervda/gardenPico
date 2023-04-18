@@ -3,6 +3,8 @@ from machine import Pin, ADC, I2C
 import time
 import bme280
 import gc
+from settings import GardenSettings
+import relay
 
 pumpSeconds = 0
 camMinutes = 0
@@ -72,7 +74,8 @@ def getWaterLevel():
 def makeLogLine():
     global pumpSeconds
     global camMinutes
-    logLine = str(time.time()) + ","
+    gs = GardenSettings()
+    logLine = str(gs.getLocalTime()) + ","
     logLine += str(getWetness(sm1ADC)) + "," + \
         str(getWetness(sm2ADC)) + "," + str(getBattery(batADC)) + ","
     logLine += getTemperature().replace("C", "") + "," + \
@@ -85,7 +88,7 @@ def makeLogLine():
 
 
 def getSensors():
-    # Get a dictionary of sensor data
+    # Get a dictionary of sensor data and relay state
     sensors = {}
     sensors["sm1"] = getWetness(sm1ADC)
     sensors["sm2"] = getWetness(sm2ADC)
@@ -97,18 +100,23 @@ def getSensors():
     sensors["mem_free"] = gc.mem_free()
     sensors["file_bytes_free"] = (uos.statvfs("/")[0] * uos.statvfs("/")[3])
     sensors["file_bytes_total"] = (uos.statvfs("/")[0] * uos.statvfs("/")[2])
+    sensors["pump"] = relay.getPump()
+    sensors["cam"] = relay.getCam()
     print(sensors)
     return sensors
 
 
 def writeLog():
-    logMonth = str(time.localtime()[1])
+    gs = GardenSettings()
+    logMonth = str(time.localtime(gs.getLocalTime())[1])
     if len(logMonth) == 1:
         logMonth = "0" + logMonth
-    logDay = str(time.localtime()[2])
+    logDay = str(time.localtime(gs.getLocalTime())[2])
     if len(logDay) == 1:
         logDay = "0" + logDay
-    logName = "/log/" + str(time.localtime()[0]) + logMonth + logDay + ".csv"
+    logName = "/log/" + \
+        str(time.localtime(gs.getLocalTime())
+            [0]) + logMonth + logDay + ".csv"
     logLine = makeLogLine()
     print(logName, logLine)
     if file_or_dir_exists(logName):

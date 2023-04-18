@@ -3,6 +3,7 @@ from settings import GardenSettings
 import time
 import sensor
 
+
 pumpRelay = machine.Pin(15, machine.Pin.OUT)
 pumpRelay.value(0)
 pumpValue = "off"
@@ -16,12 +17,12 @@ camOffTime = None
 
 def pumpOn():
     global pumpValue, pumpOffTime
+    gs = GardenSettings()
     # Check there is enough water to pump before starting irrigation
     if (sensor.getWaterLevel() > 1):
         pumpRelay.on()
         pumpValue = "on"
-        gs = GardenSettings()
-        pumpOffTime = time.time() + gs.getPumpOnSeconds()
+        pumpOffTime = gs.getLocalTime() + gs.getPumpOnSeconds()
     else:
         print("Water level too low, pump not started", sensor.waterLevel)
 
@@ -39,10 +40,10 @@ def getPump():
 
 def camOn():
     global camValue, camOffTime
+    gs = GardenSettings()
     camRelay.on()
     camValue = "on"
-    gs = GardenSettings()
-    camOffTime = time.time() + (gs.getCamOnMinutes() * 60)
+    camOffTime = gs.getLocalTime() + (gs.getCamOnMinutes() * 60)
 
 
 def camOff():
@@ -58,6 +59,7 @@ def getCam():
 
 def checkToTurnOff():
     global pumpOffTime, camOffTime
+    gs = GardenSettings()
     if (sensor.getWaterLevel() == 1):
         print("water level is low, turned off pump")
         pumpOff()
@@ -65,14 +67,14 @@ def checkToTurnOff():
         if getPump() == "on":
             pumpOff()
     else:
-        if pumpOffTime < time.time():
+        if pumpOffTime < gs.getLocalTime():
             pumpOff()
             pumpOffTime = None
     if camOffTime is None:
         if getCam() == "on":
             camOff()
     else:
-        if camOffTime < time.time():
+        if camOffTime < gs.getLocalTime():
             camOff()
             camOffTime = None
 
@@ -91,8 +93,8 @@ def checkToTurnOn():
 
 
 def checkToTurnOnForMoisture():
-    gs = GardenSettings()
     # moisture sensors say pump should be turned on, only check once an hour
+    gs = GardenSettings()
     if sensor.getWetness(sensor.sm1ADC) < gs.getPumpMSTriggerOn() or sensor.getWetness(sensor.sm2ADC) < gs.getPumpMSTriggerOn():
         print("Pump on , low moisture")
         pumpOn()

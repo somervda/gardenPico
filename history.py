@@ -53,10 +53,7 @@ class History:
                         lineValues = line.split(",")
                         if int(lineValues[0]) >= begin and int(lineValues[0]) <= end:
                             if summarize:
-                                # Summarize a days data, note that this is done based on
-                                # GMT time so days may not map exactly to local time, however
-                                # I am just 4/5 hours out of sync so offset days will still work
-                                #  for me (Interesting stuff happens mostly in day light hours)
+                                # Summarize a days data
                                 sm1Total += int(lineValues[1])
                                 sm2Total += int(lineValues[2])
                                 batTotal += float(lineValues[3])
@@ -68,13 +65,22 @@ class History:
                                 hoursTotal += 1
                             else:
                                 # Build dictionary item for current hour
-                                entries[int(lineValues[0])] = {"sm1": int(lineValues[1]), "sm2": int(lineValues[2]), "bat": float(lineValues[3]), "temp": float(
+                                entries[int(lineValues[0])] = {"timeStamp": int(lineValues[0]), "sm1": int(lineValues[1]), "sm2": int(lineValues[2]), "bat": float(lineValues[3]), "temp": float(
                                     lineValues[4]), "humidity": float(lineValues[5]), "pump": int(lineValues[6]), "cam": int(lineValues[7]), "waterLevel": int(lineValues[8])}
                     if summarize:
                         startOfDay = fileDate - \
                             (time.localtime(fileDate)[3] * 60 * 60) - \
                             (time.localtime(fileDate)[4] * 60) + 1
-                        entries[startOfDay] = {"sm1": sm1Total/hoursTotal, "sm2": sm2Total/hoursTotal, "bat": batTotal/hoursTotal, "temp": tempTotal /
+                        entries[startOfDay] = {"timeStamp": startOfDay, "sm1": sm1Total/hoursTotal, "sm2": sm2Total/hoursTotal, "bat": batTotal/hoursTotal, "temp": tempTotal /
                                                hoursTotal, "humidity": humidityTotal/hoursTotal, "pump": pumpTotal, "cam": camTotal, "waterLevel": waterLevelTotal/hoursTotal}
+                        sm1Total = 0
+                        sm2Total = 0
+                        batTotal = 0
+                        tempTotal = 0
+                        humidityTotal = 0
+                        waterLevelTotal = 0
+                        pumpTotal = 0
+                        camTotal = 0
+                        hoursTotal = 0
         # print("entries:", entries)
         return entries
