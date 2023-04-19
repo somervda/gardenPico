@@ -27,7 +27,13 @@ class History:
         pumpTotal = 0
         camTotal = 0
         hoursTotal = 0
-        SUMMARIZE_DAYS = 7
+        # After 6 days of 24 hours data output I was getting memory allocation (JSON size?)
+        # errors, so started summarizing after 4 days data. Maybe will need to summarize by week after 90 days?
+        #         Traceback (most recent call last):
+        #            File "/lib/microdot_asyncio.py", line 378, in dispatch_request
+        #            File "/lib/microdot.py", line 540, in __init__
+        #         MemoryError: memory allocation failed, allocating 11288 bytes
+        SUMMARIZE_DAYS = 4
 
         summarize = True if ((end-begin)/(60*60*24)
                              ) > SUMMARIZE_DAYS else False
@@ -72,8 +78,9 @@ class History:
                         startOfDay = fileDate - \
                             (time.localtime(fileDate)[3] * 60 * 60) - \
                             (time.localtime(fileDate)[4] * 60) + 1
-                        entries[startOfDay] = {"timeStamp":  startOfDay, "sm1": sm1Total/hoursTotal, "sm2": sm2Total/hoursTotal, "bat": batTotal/hoursTotal, "temp": tempTotal /
-                                               hoursTotal, "humidity": humidityTotal/hoursTotal, "pump": pumpTotal, "cam": camTotal, "waterLevel": waterLevelTotal/hoursTotal}
+                        if hoursTotal > 0:
+                            entries[startOfDay] = {"timeStamp":  startOfDay, "sm1": sm1Total/hoursTotal, "sm2": sm2Total/hoursTotal, "bat": batTotal/hoursTotal, "temp": tempTotal /
+                                                   hoursTotal, "humidity": humidityTotal/hoursTotal, "pump": pumpTotal, "cam": camTotal, "waterLevel": waterLevelTotal/hoursTotal}
                         sm1Total = 0
                         sm2Total = 0
                         batTotal = 0

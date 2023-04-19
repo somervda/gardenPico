@@ -85,7 +85,7 @@ def gardenHistory(request, start=0, end=0):
         _start = int(start)
         _end = int(end)
     except:
-        return "Start/End values not integer(s).", 400
+        return "Start/End values not integer(s).", 400,  {'Access-Control-Allow-Origin': '*'}
     if start == 0:
         start = time.time() - (24 * 60 * 60)
     if end == 0:
