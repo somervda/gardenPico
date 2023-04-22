@@ -155,7 +155,7 @@ def getAllSettings(request):
 #  All other request return static files from garden_ui folder
 @app.route('/')
 def index(request):
-    return send_file('garden-ui/index.html')
+    return send_file('garden-ui/index.html', compressed=True)
 
 
 @app.route('/<path:path>')
@@ -165,7 +165,7 @@ def static(request, path):
         # print("directory traversal is not allowed " + path)
         return 'Not found', 404
     # print(path)
-    return send_file('garden-ui/' + path)
+    return send_file('garden-ui/' + path, compressed=True)
 
 
 if __name__ == '__main__':

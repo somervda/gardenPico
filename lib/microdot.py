@@ -146,6 +146,10 @@ class NoCaseDict(dict):
         kl = key.lower()
         return super().get(self.keymap.get(kl, kl), default)
 
+    def update(self, other_dict):
+        for key, value in other_dict.items():
+            self[key] = value
+
 
 def mro(cls):  # pragma: no cover
     """Return the method resolution order of a class.
@@ -400,11 +404,11 @@ class Request():
         if len(urlencoded) > 0:
             if isinstance(urlencoded, str):
                 for k, v in [pair.split('=', 1)
-                             for pair in urlencoded.split('&')]:
+                             for pair in urlencoded.split('&') if pair]:
                     data[urldecode_str(k)] = urldecode_str(v)
             elif isinstance(urlencoded, bytes):  # pragma: no branch
                 for k, v in [pair.split(b'=', 1)
-                             for pair in urlencoded.split(b'&')]:
+                             for pair in urlencoded.split(b'&') if pair]:
                     data[urldecode_bytes(k)] = urldecode_bytes(v)
         return data
 
@@ -525,6 +529,10 @@ class Response():
     #: ``Content-Type`` header.
     default_content_type = 'text/plain'
 
+    #: The default cache control max age used by :meth:`send_file`. A value
+    #: of ``None`` means that no ``Cache-Control`` header is added.
+    default_send_file_max_age = None
+
     #: Special response used to signal that a response does not need to be
     #: written to the client. Used to exit WebSocket connections cleanly.
     already_handled = None
@@ -544,6 +552,7 @@ class Response():
         else:
             # this applies to bytes, file-like objects or generators
             self.body = body
+        self.is_head = False
 
     def set_cookie(self, cookie, value, path=None, domain=None, expires=None,
                    max_age=None, secure=False, http_only=False):
@@ -608,19 +617,20 @@ class Response():
         stream.write(b'\r\n')
 
         # body
-        can_flush = hasattr(stream, 'flush')
-        try:
-            for body in self.body_iter():
-                if isinstance(body, str):  # pragma: no cover
-                    body = body.encode()
-                stream.write(body)
-                if can_flush:  # pragma: no cover
-                    stream.flush()
-        except OSError as exc:  # pragma: no cover
-            if exc.errno in MUTED_SOCKET_ERRORS:
-                pass
-            else:
-                raise
+        if not self.is_head:
+            can_flush = hasattr(stream, 'flush')
+            try:
+                for body in self.body_iter():
+                    if isinstance(body, str):  # pragma: no cover
+                        body = body.encode()
+                    stream.write(body)
+                    if can_flush:  # pragma: no cover
+                        stream.flush()
+            except OSError as exc:  # pragma: no cover
+                if exc.errno in MUTED_SOCKET_ERRORS:
+                    pass
+                else:
+                    raise
 
     def body_iter(self):
         if self.body:
@@ -651,7 +661,9 @@ class Response():
         return cls(status_code=status_code, headers={'Location': location})
 
     @classmethod
-    def send_file(cls, filename, status_code=200, content_type=None):
+    def send_file(cls, filename, status_code=200, content_type=None,
+                  stream=None, max_age=None, compressed=False,
+                  file_extension=''):
         """Send file contents in a response.
 
         :param filename: The filename of the file.
@@ -659,7 +671,25 @@ class Response():
                             default is 302.
         :param content_type: The ``Content-Type`` header to use in the
                              response. If omitted, it is generated
-                             automatically from the file extension.
+                             automatically from the file extension of the
+                             ``filename`` parameter.
+        :param stream: A file-like object to read the file contents from. If
+                       a stream is given, the ``filename`` parameter is only
+                       used when generating the ``Content-Type`` header.
+        :param max_age: The ``Cache-Control`` header's ``max-age`` value in
+                        seconds. If omitted, the value of the
+                        :attr:`Response.default_send_file_max_age` attribute is
+                        used.
+        :param compressed: Whether the file is compressed. If ``True``, the
+                           ``Content-Encoding`` header is set to ``gzip``. A
+                           string with the header value can also be passed.
+                           Note that when using this option the file must have
+                           been compressed beforehand. This option only sets
+                           the header.
+        :param file_extension: A file extension to append to the ``filename``
+                               parameter when opening the file, including the
+                               dot. The extension given here is not considered
+                               when generating the ``Content-Type`` header.
 
         Security note: The filename is assumed to be trusted. Never pass
         filenames provided by the user without validating and sanitizing them
@@ -671,9 +701,19 @@ class Response():
                 content_type = Response.types_map[ext]
             else:
                 content_type = 'application/octet-stream'
-        f = open(filename, 'rb')
-        return cls(body=f, status_code=status_code,
-                   headers={'Content-Type': content_type})
+        headers = {'Content-Type': content_type}
+
+        if max_age is None:
+            max_age = cls.default_send_file_max_age
+        if max_age is not None:
+            headers['Cache-Control'] = 'max-age={}'.format(max_age)
+
+        if compressed:
+            headers['Content-Encoding'] = compressed \
+                if isinstance(compressed, str) else 'gzip'
+
+        f = stream or open(filename + file_extension, 'rb')
+        return cls(body=f, status_code=status_code, headers=headers)
 
 
 class URLPattern():
@@ -759,6 +799,7 @@ class Microdot():
         self.after_error_request_handlers = []
         self.error_handlers = {}
         self.shutdown_requested = False
+        self.options_handler = self.default_options_handler
         self.debug = False
         self.server = None
 
@@ -794,7 +835,8 @@ class Microdot():
         """
         def decorated(f):
             self.url_map.append(
-                (methods or ['GET'], URLPattern(url_pattern), f))
+                ([m.upper() for m in (methods or ['GET'])],
+                 URLPattern(url_pattern), f))
             return f
         return decorated
 
@@ -1080,16 +1122,31 @@ class Microdot():
         self.shutdown_requested = True
 
     def find_route(self, req):
+        method = req.method.upper()
+        if method == 'OPTIONS' and self.options_handler:
+            return self.options_handler(req)
+        if method == 'HEAD':
+            method = 'GET'
         f = 404
         for route_methods, route_pattern, route_handler in self.url_map:
             req.url_args = route_pattern.match(req.path)
             if req.url_args is not None:
-                if req.method in route_methods:
+                if method in route_methods:
                     f = route_handler
                     break
                 else:
                     f = 405
         return f
+
+    def default_options_handler(self, req):
+        allow = []
+        for route_methods, route_pattern, route_handler in self.url_map:
+            if route_pattern.match(req.path) is not None:
+                allow.extend(route_methods)
+        if 'GET' in allow:
+            allow.append('HEAD')
+        allow.append('OPTIONS')
+        return {'Allow': ', '.join(allow)}
 
     def handle_request(self, sock, addr):
         if Request.socket_read_timeout and \
@@ -1165,6 +1222,8 @@ class Microdot():
                         for handler in req.after_request_handlers:
                             res = handler(req, res) or res
                         after_request_handled = True
+                    elif isinstance(f, dict):
+                        res = Response(headers=f)
                     elif f in self.error_handlers:
                         res = self.error_handlers[f](req)
                     else:
@@ -1208,6 +1267,7 @@ class Microdot():
         if not after_request_handled:
             for handler in self.after_error_request_handlers:
                 res = handler(req, res) or res
+        res.is_head = (req and req.method == 'HEAD')
         return res
 
 
