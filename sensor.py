@@ -86,6 +86,7 @@ def makeLogLine():
 
 
 def getSensors():
+    gc.collect()
     # Get a dictionary of sensor data and relay state
     sensors = {}
     sensors["sm1"] = getWetness(sm1ADC)

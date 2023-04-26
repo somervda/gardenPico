@@ -1,5 +1,6 @@
 import time
 import os
+import gc
 # import helper
 
 
@@ -15,6 +16,7 @@ class History:
             return False
 
     def getLogData(self, begin, end=int(time.time())):
+        gc.collect()
         # Will get all the data between two times
         # if more than 7 days between dates then summarize to daily totals.
         entries = {}

@@ -173,7 +173,8 @@ if __name__ == '__main__':
     uasyncio.create_task(clockWatcher())
     try:
         # Fire up the microDot server (also runs as a background coroutine)
-        app.run(debug=True, port=80)
+        # Note: debug requires a terminal connection so turn of when running in garden from battery
+        app.run(debug=False, port=80)
     except:
         print("app.shutdown")
         app.shutdown()
