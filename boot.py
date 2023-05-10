@@ -7,15 +7,15 @@ import machine
 # import ntptime_das
 
 
-ssid = 'guest24'
-password = 'backyard'
+ssid = 'spikeNG24_EXT'
+password = 'somerville885'
 
 led = machine.Pin("LED", machine.Pin.OUT)
 led.on()
 
 
 wlan = network.WLAN(network.STA_IF)
-print("Connecting:")
+print("Connecting to " + ssid + ":")
 wlan.active(True)
 wlan.ifconfig(('192.168.1.40', '255.255.255.0',
                '192.168.1.1', '192.168.1.1'))

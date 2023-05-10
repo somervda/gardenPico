@@ -61,13 +61,14 @@ def getHumidity():
 def getWaterLevel():
     # 4 water levels reported
     # 1- low (Don't pump), 2 - medium, 3 - medium/full, 4 - full
-    if waterLowPin.value() == 0:
-        return 1
-    if waterMedPin.value() == 0:
-        return 2
-    if waterHighPin.value() == 0:
-        return 3
-    return 4
+    waterLevel = 4
+    if waterHighPin.value() == 1:
+        waterLevel = 3
+    if waterMedPin.value() == 1:
+        waterLevel = 2
+    if waterLowPin.value() == 1:
+        waterLevel = 1
+    return waterLevel
 
 
 def makeLogLine():
