@@ -2,41 +2,76 @@ from microdot_asyncio import Microdot,  send_file
 import machine
 import uasyncio
 import time
+import sys
+import network
 
 
 import relay
 import sensor
 from history import History
 from settings import GardenSettings
+from logger import Logger
 
 
 lastTime = time.time()
 app = Microdot()
 gardenSettings = GardenSettings()
+wlan = network.WLAN(network.STA_IF)
 
 
 async def clockWatcher():
-    global lastTime
-    while True:
-        # Update pump and cam time tracking
-        if relay.getPump() == "on":
-            sensor.pumpSeconds += 60
-        if relay.getCam() == "on":
-            sensor.camMinutes += 1
-        # Check if the pump or cam should be turned off
-        relay.checkToTurnOff()
-        # Check if the pump should be turned on
-        relay.checkToTurnOn()
-        # Check if it is a new hour and time to log sensor data
-        lastHour = time.localtime(lastTime)[3]
-        currentHour = time.localtime()[3]
-        if lastHour != currentHour:
-            # New hour
-            sensor.writeLog()
-            relay.checkToTurnOnForMoisture()
-        lastTime = time.time()
-        # sleep for 60 seconds
-        await uasyncio.sleep(60)
+    try:
+        global lastTime
+        while True:
+            if not wlan.isconnected():
+                # restart if we lose network connection
+                print("wlan.isconnected()", wlan.isconnected(),
+                      "wlan.status()", wlan.status())
+                with open("error.txt", "a") as errFile:
+                    errFile.write("\n" + str(time.localtime()) + "\n")
+                    errFile.write(
+                        "Network connection lost - status=" + str(wlan.status()) + "\n")
+                print("Network connection lost, rebooting in 5 seconds...")
+                time.sleep(5)
+                machine.reset()
+            # Update pump and cam time tracking
+            if relay.getPump() == "on":
+                sensor.pumpSeconds += 60
+            if relay.getCam() == "on":
+                sensor.camMinutes += 1
+            # Check if the pump or cam should be turned off
+            relay.checkToTurnOff()
+            # Check if the pump should be turned on
+            relay.checkToTurnOn()
+            # Check if it is a new hour and time to log sensor data
+            lastHour = time.localtime(lastTime)[3]
+            currentHour = time.localtime()[3]
+            if lastHour != currentHour:
+                # New hour
+                sensor.writeLog()
+                relay.checkToTurnOnForMoisture()
+            lastTime = time.time()
+            # sleep for 60 seconds
+            await uasyncio.sleep(60)
+    except Exception as e:
+        logger = Logger()
+        logger.writeException(e)
+        print("Clock watcher exception, rebooting in 5 seconds...")
+        time.sleep(5)
+        machine.reset()
+
+# Get list of errors
+@app.route('/log')
+def getSysLog(request):
+    logger = Logger()
+    return logger.getLog(), 200,  {'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/html'}
+
+
+@app.route('/log/clear')
+def clearSysLog(request):
+    logger = Logger()
+    logger.clearLog()
+    return "", 200,  {'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/html'}
 
 # Turn the pump on or off
 @app.route('/pump')
@@ -169,6 +204,8 @@ def static(request, path):
 
 
 if __name__ == '__main__':
+    logger = Logger()
+    logger.writeLogLine("*** Restart ***")
     # Fire up background co-routine first
     uasyncio.create_task(clockWatcher())
     try:
@@ -176,5 +213,7 @@ if __name__ == '__main__':
         # Note: debug requires a terminal connection so turn of when running in garden from battery
         app.run(debug=False, port=80)
     except:
-        print("app.shutdown")
-        app.shutdown()
+        logger.writeLogLine("microDot Exception")
+        print("Microdot exception, restarting in 5 seconds...")
+        time.sleep(5)
+        machine.reset()

@@ -24,7 +24,7 @@ def pumpOn():
         pumpValue = "on"
         pumpOffTime = time.time() + gs.getPumpOnSeconds()
     else:
-        print("Water level too low, pump not started", sensor.waterLevel)
+        print("Water level too low, pump not started", sensor.getWaterLevel())
 
 
 def pumpOff():
@@ -44,6 +44,7 @@ def camOn():
     camRelay.on()
     camValue = "on"
     camOffTime = time.time() + (gs.getCamOnMinutes() * 60)
+    # print("CamOffTime:", camOffTime)
 
 
 def camOff():
@@ -61,7 +62,7 @@ def checkToTurnOff():
     global pumpOffTime, camOffTime
     gs = GardenSettings()
     if (sensor.getWaterLevel() == 1):
-        print("water level is low, turned off pump")
+        # print("water level is low, turned off pump")
         pumpOff()
     if pumpOffTime is None:
         if getPump() == "on":
@@ -70,6 +71,7 @@ def checkToTurnOff():
         if pumpOffTime < time.time():
             pumpOff()
             pumpOffTime = None
+    # print("camOffTime:", camOffTime, "time.time():", time.time())
     if camOffTime is None:
         if getCam() == "on":
             camOff()
