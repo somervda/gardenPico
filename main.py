@@ -8,8 +8,8 @@ from iotwifi import IOTwifi
 # import ntptime_das
 
 
-ssid = 'spikeNG24_EXT'
-password = 'somerville885'
+# ssid = 'spikeNG24_EXT'
+# password = 'somerville885'
 
 led = machine.Pin("LED", machine.Pin.OUT)
 led.on()

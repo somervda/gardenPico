@@ -4,6 +4,8 @@ import uasyncio
 import time
 import sys
 import network
+import os
+from iotwifi import IOTwifi
 
 
 import relay
@@ -12,11 +14,16 @@ from history import History
 from settings import GardenSettings
 from logger import Logger
 
-
+iotwifi = IOTwifi(False)
 lastTime = time.time()
 app = Microdot()
 gardenSettings = GardenSettings()
 wlan = network.WLAN(network.STA_IF)
+
+def getFreespaceKB():
+    stat = os.statvfs("/")
+    free = stat[0] * stat[3]
+    return free / 1024
 
 
 async def clockWatcher():
