@@ -4,6 +4,7 @@ import network
 import ntptime
 import time
 import machine
+from iotwifi import IOTwifi
 # import ntptime_das
 
 
@@ -14,19 +15,21 @@ led = machine.Pin("LED", machine.Pin.OUT)
 led.on()
 
 
-wlan = network.WLAN(network.STA_IF)
-print("Connecting to " + ssid + ":")
-wlan.active(True)
-wlan.ifconfig(('192.168.1.40', '255.255.255.0',
-               '192.168.1.1', '192.168.1.1'))
-wlan.connect(ssid, password)
-while not wlan.isconnected() and wlan.status() >= 0:
-    # Slow LED flash while connecting
-    print(".", end="")
-    led.off()
-    time.sleep(0.5)
-    led.on()
-    time.sleep(.5)
+# wlan = network.WLAN(network.STA_IF)
+# print("Connecting to " + ssid + ":")
+# wlan.active(True)
+# wlan.ifconfig(('192.168.1.40', '255.255.255.0',
+#                '192.168.1.1', '192.168.1.1'))
+# wlan.connect(ssid, password)
+# while not wlan.isconnected() and wlan.status() >= 0:
+#     # Slow LED flash while connecting
+#     print(".", end="")
+#     led.off()
+#     time.sleep(0.5)
+#     led.on()
+#     time.sleep(.5)
+iotwifi = IOTwifi(False)
+iotwifi.connect()
 
 time.sleep(2)
 print("Connected! IP Address = " + wlan.ifconfig()[0])
