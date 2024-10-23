@@ -3,5 +3,11 @@
     "pumpOnSeconds": 180,
     "camOnMinutes": 30,
     "pumpMSBlock": 9,
-    "pumpMSTriggerOn": 2
+    "pumpMSTriggerOn": 2,
+    "hostname":"gardenPico",
+    "ssid":"spikeNG24_ext",
+    "hostname":"somerville885",
+    "iotHost":"somerville.noip.me",
+    "iotPort":34000,
+    "iotPassword":"David"
 }

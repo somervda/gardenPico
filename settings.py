@@ -90,3 +90,46 @@ class GardenSettings:
         self._settings["pumpTimes"] = times
         self._saveSettings()
         return times
+    
+    # WiFI settings
+    def getHostname(self):
+        self._loadSettings()
+        if "hostname" in self._settings:
+            return self._settings["hostname"]
+        else:
+            return None
+        
+    def getSSID(self):
+        self._loadSettings()
+        if "ssid" in self._settings:
+            return self._settings["ssid"]
+        else:
+            return None
+        
+    def getPassword(self):
+        self._loadSettings()
+        if "password" in self._settings:
+            return self._settings["password"]
+        else:
+            return None
+        
+    def getIotHost(self):
+        self._loadSettings()
+        if "iotHost" in self._settings:
+            return self._settings["iotHost"]
+        else:
+            return None
+        
+    def getIotPort(self):
+        self._loadSettings()
+        if "iotPort" in self._settings:
+            return self._settings["iotPort"]
+        else:
+            return None
+        
+    def getIotPassword(self):
+        self._loadSettings()
+        if "iotPassword" in self._settings:
+            return self._settings["iotPassword"]
+        else:
+            return None
