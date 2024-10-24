@@ -143,9 +143,23 @@ class GardenSettings:
         else:
             return None
         
+    def getGARDEN_ID(self):
+        self._loadSettings()
+        if "GARDEN_ID" in self._settings:
+            return self._settings["GARDEN_ID"]
+        else:
+            return None
+        
     def getDEVICE_ID(self):
         self._loadSettings()
         if "DEVICE_ID" in self._settings:
             return self._settings["DEVICE_ID"]
         else:
             return None
+        
+    def getMinFreeKB(self):
+        self._loadSettings()
+        if "minFreeKB" in self._settings:
+            return self._settings["minFreeKB"]
+        else:
+            return None      

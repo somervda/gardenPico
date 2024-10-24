@@ -14,6 +14,7 @@ from history import History
 from gardensettings import GardenSettings
 from logger import Logger
 
+print("mainloop")
 iotwifi = IOTwifi(False)
 lastTime = time.time()
 app = Microdot()
@@ -55,7 +56,22 @@ async def clockWatcher():
             currentHour = time.localtime()[3]
             if lastHour != currentHour:
                 # New hour
+                if getFreespaceKB() < gardenSettings.getMinFreeKB:
+                    #  Remove oldest log
+                    oldestLog = "zzzzzzzzzzzzzzz"
+                    for filename in os.listdir("/log"):
+                        print(filename,oldestLog)
+                        if filename < oldestLog:
+                            oldestLog = filename
+                    if oldestLog != "zzzzzzzzzzzzzzz":
+                        os.remove("/log/" + oldestLog)
+                # Send data to iot
+                sensorData = sensor.getSensors()
+                iotwifi.sendClimate(sensorData["temprature"],sensorData["humidity"])
+                iotwifi.sendGarden(sensorData["sm1"],sensorData["sm2"],sensorData["waterLevel"],sensorData["pump"],sensorData["cam"],sensorData["battery"])
+                # Save data locally
                 sensor.writeLog()
+
                 relay.checkToTurnOnForMoisture()
             lastTime = time.time()
             # sleep for 60 seconds
@@ -210,17 +226,17 @@ def static(request, path):
     return send_file('garden-ui/' + path, compressed=True)
 
 
-if __name__ == '__main__':
-    logger = Logger()
-    logger.writeLogLine("*** Restart ***")
-    # Fire up background co-routine first
-    uasyncio.create_task(clockWatcher())
-    try:
-        # Fire up the microDot server (also runs as a background coroutine)
-        # Note: debug requires a terminal connection so turn of when running in garden from battery
-        app.run(debug=False, port=80)
-    except:
-        logger.writeLogLine("microDot Exception")
-        print("Microdot exception, restarting in 5 seconds...")
-        time.sleep(5)
-        machine.reset()
+
+logger = Logger()
+logger.writeLogLine("*** Restart ***")
+# Fire up background co-routine first
+uasyncio.create_task(clockWatcher())
+try:
+    # Fire up the microDot server (also runs as a background coroutine)
+    # Note: debug requires a terminal connection so turn of when running in garden from battery
+    app.run(debug=False, port=80)
+except:
+    logger.writeLogLine("microDot Exception")
+    print("Microdot exception, restarting in 5 seconds...")
+    time.sleep(5)
+    machine.reset()

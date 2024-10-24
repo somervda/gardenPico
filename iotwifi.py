@@ -60,24 +60,25 @@ class IOTwifi:
         return True
 
     def send(self,iotData):
-        not self.quiet and print("wifi send:",url)
+        not self.quiet and print("wifi send iotData:",iotData)
         self.ledFlash()
         # Add user and device_id to the iotData
         iotData["user"] = self.settings.getIotUser()
-        iotData["deviceID"] = self.settings.getIotDEVICE_ID()
-
+        iotData["deviceID"] = self.settings.getDEVICE_ID()
+        iotData["sensorTimestamp"] = time.time()
+        not self.quiet and print("iotData:",iotData)
         url = url = 'http://' + self.settings.getIotHost() + ':' + str(self.settings.getIotPort()) + \
         '/write?iotData=' + json.dumps(iotData).replace("\'","\"").replace(" ","")
 
 
         try:
+            not self.quiet and print("wifi send url:",url)
             resp = requests.get(url)
             not self.quiet and print("wifi send status:",resp.status_code)
             if resp.status_code==200:
                 return True
             else:
-                not self.quiet  and print(
-                    'Fail Response:'  ,resp.status_code,resp)
+                not self.quiet  and print('Fail Response:')
                 return False
         except Exception as error:
             # handle the exception
@@ -94,7 +95,17 @@ class IOTwifi:
         iotData = {}
         iotData["celsius"] = celsius
         iotData["humidity"] = humidity
-        iotData["sensorTimestamp"] = time.time()
-        iotData["appID"] = self.settings.getCLIMATE_ID
-        self.send()
+        iotData["appID"] = self.settings.getCLIMATE_ID()
+        self.send(iotData)
+
+    def sendGarden(self, moisture1, moisture2,waterLevel,pumpSeconds,camSeconds,houseVolts):
+        iotData = {}
+        iotData["moisture1"] = moisture1
+        iotData["moisture2"] = moisture2
+        iotData["waterLevel"] = waterLevel
+        iotData["pumpSeconds"] = pumpSeconds
+        iotData["camSeconds"] = camSeconds
+        iotData["houseVolts"] = houseVolts
+        iotData["appID"] = self.settings.getGARDEN_ID()
+        self.send(iotData)
 

@@ -8,8 +8,10 @@
     "ssid":"spikeNG24_EXT",
     "password":"somerville885",
     "iotHost":"somerville.noip.me",
-    "iotPort":34000,
-    "iotUser":"David",
+    "minFreeKB":30,
+    "iotPort":37007,
+    "iotUser":"david",
     "CLIMATE_ID": 1,
-    "DEVICE_ID": 9
+    "GARDEN_ID": 8,
+    "DEVICE_ID": 8
 }
