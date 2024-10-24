@@ -113,6 +113,8 @@ class GardenSettings:
         else:
             return None
         
+    # IOT system settings
+
     def getIotHost(self):
         self._loadSettings()
         if "iotHost" in self._settings:
@@ -127,9 +129,23 @@ class GardenSettings:
         else:
             return None
         
-    def getIotPassword(self):
+    def getIotUser(self):
         self._loadSettings()
-        if "iotPassword" in self._settings:
-            return self._settings["iotPassword"]
+        if "iotUser" in self._settings:
+            return self._settings["iotUser"]
+        else:
+            return None
+        
+    def getCLIMATE_ID(self):
+        self._loadSettings()
+        if "CLIMATE_ID" in self._settings:
+            return self._settings["CLIMATE_ID"]
+        else:
+            return None
+        
+    def getDEVICE_ID(self):
+        self._loadSettings()
+        if "DEVICE_ID" in self._settings:
+            return self._settings["DEVICE_ID"]
         else:
             return None

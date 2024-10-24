@@ -1,5 +1,5 @@
 import machine
-from settings import GardenSettings
+from gardensettings import GardenSettings
 import time
 import sensor
 

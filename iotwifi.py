@@ -3,8 +3,9 @@
 import network
 import machine
 import time
-from settings import Settings
+from gardensettings import GardenSettings
 import requests
+import json
 
 class IOTwifi:
 
@@ -17,7 +18,7 @@ class IOTwifi:
     def __init__(self,quiet=True):
         not self.quiet and print('__init__',quiet)
         self.quiet = quiet
-        self.settings = Settings()
+        self.settings = GardenSettings()
 
     def ledFlash(self):
         self.led.on()
@@ -31,16 +32,23 @@ class IOTwifi:
 
     def connect(self):
         self.wlan = network.WLAN(network.STA_IF)
-        not self.quiet and print("Connecting to " + self.settings.get("SSID") + ":")
+        not self.quiet and print("Connecting to " + self.settings.getSSID() + ":")
         self.wlan.active(True)
         # Note SSID is case sensitive i.e. make sure it is gl24 not GL24
-        network.hostname(self.settings.get("HOSTNAME"))
-        self.wlan.connect(self.settings.get("SSID"), self.settings.get("PASSWORD"))
+        # 0   STAT_IDLE -- no connection and no activity,
+        # 1   STAT_CONNECTING -- connecting in progress,
+        # -3  STAT_WRONG_PASSWORD -- failed due to incorrect password,
+        # -2  STAT_NO_AP_FOUND -- failed because no access point replied,
+        # -1  STAT_CONNECT_FAIL -- failed due to other problems,
+        # 3   STAT_GOT_IP -- connection successful.
+
+        network.hostname(self.settings.getHostname())
+        self.wlan.connect(self.settings.getSSID(), self.settings.getPassword())
         connectCount = 0
-        while not self.wlan.isconnected() and self.wlan.status() >= 0:
+        while not self.wlan.isconnected() and  self.wlan.status() != 3:
             connectCount+=1
             if connectCount>30:
-                not self.quiet and print(" wifi connect timed out")
+                not self.quiet and print(" wifi connect timed out. status:", self.wlan.status() )
                 self.powerOff()
                 return False
             # Slow LED flash while connecting
@@ -51,9 +59,15 @@ class IOTwifi:
         not self.quiet and print("Connected! ifconfig:",self.wlan.ifconfig()[0],self.wlan.ifconfig()[1],self.wlan.ifconfig()[2],self.wlan.ifconfig()[3])
         return True
 
-    def send(self,url):
+    def send(self,iotData):
         not self.quiet and print("wifi send:",url)
         self.ledFlash()
+        # Add user and device_id to the iotData
+        iotData["user"] = self.settings.getIotUser()
+        iotData["deviceID"] = self.settings.getIotDEVICE_ID()
+
+        url = url = 'http://' + self.settings.getIotHost() + ':' + str(self.settings.getIotPort()) + \
+        '/write?iotData=' + json.dumps(iotData).replace("\'","\"").replace(" ","")
 
 
         try:
@@ -63,7 +77,7 @@ class IOTwifi:
                 return True
             else:
                 not self.quiet  and print(
-                    'Fail Response:'  ,resp.status_code,resp,text)
+                    'Fail Response:'  ,resp.status_code,resp)
                 return False
         except Exception as error:
             # handle the exception
@@ -75,3 +89,12 @@ class IOTwifi:
         self.wlan.disconnect()
         self.wlan.active(False)
         self.wlan.deinit()
+
+    def sendClimate(self, celsius, humidity):
+        iotData = {}
+        iotData["celsius"] = celsius
+        iotData["humidity"] = humidity
+        iotData["sensorTimestamp"] = time.time()
+        iotData["appID"] = self.settings.getCLIMATE_ID
+        self.send()
+

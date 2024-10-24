@@ -11,7 +11,7 @@ from iotwifi import IOTwifi
 import relay
 import sensor
 from history import History
-from settings import GardenSettings
+from gardensettings import GardenSettings
 from logger import Logger
 
 iotwifi = IOTwifi(False)

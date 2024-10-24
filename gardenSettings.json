@@ -6,8 +6,10 @@
     "pumpMSTriggerOn": 2,
     "hostname":"gardenPico",
     "ssid":"spikeNG24_EXT",
-    "hostname":"somerville885",
+    "password":"somerville885",
     "iotHost":"somerville.noip.me",
     "iotPort":34000,
-    "iotPassword":"David"
+    "iotUser":"David",
+    "CLIMATE_ID": 1,
+    "DEVICE_ID": 9
 }
