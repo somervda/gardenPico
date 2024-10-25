@@ -39,6 +39,14 @@ def getWetness(adc):
         wetness = 0
     return wetness
 
+def getPumpSeconds():
+    global pumpSeconds
+    return pumpSeconds
+
+def getCamMinutes():
+    global camMinutes
+    return pumpSeconds
+
 
 def getBattery(adc):
     # Get the voltage at the ADC

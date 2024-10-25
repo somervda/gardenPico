@@ -6,7 +6,9 @@ def getFreespaceKB():
     free = stat[0] * stat[3]
     return free / 1024
 
-if getFreespaceKB() < 1000:
+print(getFreespaceKB())
+
+if getFreespaceKB() < 100:
     #  Remove oldest log
     oldestLog = "zzzzzzzzzzzzzzz"
     for filename in os.listdir("/log"):

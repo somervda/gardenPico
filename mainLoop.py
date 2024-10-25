@@ -16,7 +16,7 @@ from logger import Logger
 
 print("mainloop")
 iotwifi = IOTwifi(False)
-lastTime = time.time()
+lastTime = 0 # Force data send on startup
 app = Microdot()
 gardenSettings = GardenSettings()
 wlan = network.WLAN(network.STA_IF)
@@ -34,7 +34,7 @@ async def clockWatcher():
             if not wlan.isconnected():
                 # restart if we lose network connection
                 print("wlan.isconnected()", wlan.isconnected(),
-                      "wlan.status()", wlan.status())
+                    "wlan.status()", wlan.status())
                 with open("error.txt", "a") as errFile:
                     errFile.write("\n" + str(time.localtime()) + "\n")
                     errFile.write(
@@ -56,7 +56,9 @@ async def clockWatcher():
             currentHour = time.localtime()[3]
             if lastHour != currentHour:
                 # New hour
-                if getFreespaceKB() < gardenSettings.getMinFreeKB:
+                print("Freespace1:",getFreespaceKB())
+                print("Freespace2:",gardenSettings.getMinFreeKB())
+                if getFreespaceKB() < gardenSettings.getMinFreeKB():
                     #  Remove oldest log
                     oldestLog = "zzzzzzzzzzzzzzz"
                     for filename in os.listdir("/log"):
@@ -67,8 +69,8 @@ async def clockWatcher():
                         os.remove("/log/" + oldestLog)
                 # Send data to iot
                 sensorData = sensor.getSensors()
-                iotwifi.sendClimate(sensorData["temprature"],sensorData["humidity"])
-                iotwifi.sendGarden(sensorData["sm1"],sensorData["sm2"],sensorData["waterLevel"],sensorData["pump"],sensorData["cam"],sensorData["battery"])
+                iotwifi.sendClimate(sensorData["temperature"],sensorData["humidity"])
+                iotwifi.sendGarden(sensorData["sm1"],sensorData["sm2"],sensorData["waterLevel"],sensor.getPumpSeconds(),sensor.getCamMinutes() * 60,sensorData["battery"])
                 # Save data locally
                 sensor.writeLog()
 
