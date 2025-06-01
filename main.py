@@ -8,9 +8,6 @@ from iotwifi import IOTwifi
 # import ntptime_das
 
 
-# ssid = 'spikeNG24_EXT'
-# password = 'somerville885'
-
 led = machine.Pin("LED", machine.Pin.OUT)
 led.on()
 
@@ -22,7 +19,7 @@ time.sleep(2)
 # There is a known timing bug with this so try again
 # if it fails.
 try:
-    ntptime.host = "snas.home"
+    ntptime.host = "snas.local"
     print(ntptime.host)
     ntptime.timeout = 2
     ntptime.settime()

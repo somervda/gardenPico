@@ -41,7 +41,7 @@ class IOTwifi:
         # -2  STAT_NO_AP_FOUND -- failed because no access point replied,
         # -1  STAT_CONNECT_FAIL -- failed due to other problems,
         # 3   STAT_GOT_IP -- connection successful.
-
+        not self.quiet and print("hostname:",self.settings.getHostname())
         network.hostname(self.settings.getHostname())
         self.wlan.connect(self.settings.getSSID(), self.settings.getPassword())
         connectCount = 0

@@ -20,9 +20,13 @@ def pumpOn():
     gs = GardenSettings()
     # Check there is enough water to pump before starting irrigation
     if (sensor.getWaterLevel() > 1):
-        pumpRelay.on()
-        pumpValue = "on"
-        pumpOffTime = time.time() + gs.getPumpOnSeconds()
+        if (checkForMoistureBlock()):
+            print("Garden is already moist, skip pump")
+        else:
+            # Fire up the pump
+            pumpRelay.on()
+            pumpValue = "on"
+            pumpOffTime = time.time() + gs.getPumpOnSeconds()
     else:
         print("Water level too low, pump not started", sensor.getWaterLevel())
 
@@ -100,3 +104,14 @@ def checkToTurnOnForMoisture():
     if sensor.getWetness(sensor.sm1ADC) < gs.getPumpMSTriggerOn() or sensor.getWetness(sensor.sm2ADC) < gs.getPumpMSTriggerOn():
         print("Pump on , low moisture")
         pumpOn()
+
+def checkForMoistureBlock():
+    # Check if garden moisture is greater than the Block value (Will not water in that case)
+    gs = GardenSettings()
+    print("checkForMoistureBlock (sm1,sm2,block value):", sensor.getWetness(sensor.sm1ADC),sensor.getWetness(sensor.sm2ADC),gs.getPumpMSBlock() )
+    if sensor.getWetness(sensor.sm1ADC) > gs.getPumpMSBlock() and sensor.getWetness(sensor.sm2ADC) > gs.getPumpMSBlock():
+        print("Moisture is higher than block value (Dont pump)")
+        return True
+    else:
+        print("Moisture is lower or equal to block value (Pump)")
+        return False
